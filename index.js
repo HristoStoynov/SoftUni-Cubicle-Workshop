@@ -4,7 +4,8 @@ const express = require('express')
 const mongoose = require('mongoose')
 const config = require('./config/config.js')[env]
 const app = express()
-const indexRouter = require('./routes')
+const indexRouter = require('./routes/index.js')
+const userRouter = require('./routes/user.js')
 
 mongoose.connect(config.databaseURL, {
     useNewUrlParser: true,
@@ -22,5 +23,6 @@ mongoose.connect(config.databaseURL, {
 require('./config/express')(app)
 
 app.use('/', indexRouter)
+app.use('/', userRouter)
 
-app.listen(config.port, console.log('here am i'))
+app.listen(config.port, console.log('Server is setup and running'))

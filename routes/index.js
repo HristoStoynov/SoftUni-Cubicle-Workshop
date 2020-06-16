@@ -1,28 +1,52 @@
 const { Router } = require('express')
 const { getAllCubes, getCube, updateCube, deleteOne } = require('../controllers/cubes')
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-const privateKey = 'MY-KEY'
 const Cube = require('../models/cube')
-const User = require('../models/user')
-const { checkUser } = require('../controllers/users.js')
+const { checkGuestUser, checkLoggedUser, userStatus } = require('../controllers/users.js')
 
 const router = Router()
 
-router.get('/', async (req, res) => {
+router.get('/', userStatus, async (req, res) => {
     const cubes = await getAllCubes()
-
-    const auth = checkUser(req, res)
 
     res.render('index', {
         title: 'Cube Workshop',
-        cubes
+        cubes,
+        auth: req.auth
     })
 })
 
-router.get('/create', function (req, res) {
+router.get('/login', checkLoggedUser, userStatus, (req, res) => {
+    res.render('loginPage', {
+        title: 'Login | Cube Workshop',
+        auth: req.auth
+    })
+})
+
+router.get('/logout', (req, res) => {
+    res.clearCookie('aid')
+
+    res.redirect('/')
+})
+
+router.get('/register', checkLoggedUser, userStatus, (req, res) => {
+    res.render('registerPage', {
+        title: 'Register | Cube Workshop',
+        auth: req.auth
+    })
+})
+
+router.get('/about', userStatus, (req, res) => {
+    res.render('about', {
+        title: 'About | Cube Workshop',
+        auth: req.auth
+    })
+})
+
+
+router.get('/create', checkGuestUser, userStatus, function (req, res) {
     res.render('create', {
-        title: 'Create | Cube Workshop'
+        title: 'Create | Cube Workshop',
+        auth: req.auth
     })
 })
 
@@ -46,87 +70,23 @@ router.post('/create', (req, res) => {
     })
 })
 
-router.get(`/details/:id`, async (req, res) => {
+router.get(`/details/:id`, userStatus, async (req, res) => {
     const cube = await getCube(req.params.id)
 
     res.render('details', {
         title: 'Details | Cube Workshop',
-        ...cube
+        ...cube,
+        auth: req.auth
     })
 })
 
-router.get('/about', (req, res) => {
-    res.render('about', {
-        title: 'About | Cube Workshop'
-    })
-})
-
-router.get('/login', (req, res) => {
-    res.render('loginPage')
-})
-
-router.post('/login', async (req, res) => {
-    const {
-        username,
-        password,
-    } = req.body
-
-    const thisuser = await User.findOne({ username })
-
-    bcrypt.compare(password, thisuser.password, (err, result) => {
-        if (result) {
-            const token = jwt.sign({
-                userId: thisuser._id,
-                username: thisuser.username
-            }, privateKey)
-
-            res.cookie('aid', token)
-
-            res.redirect('/')
-        } else {
-            console.error(err)
-        }
-    })
-})
-
-router.get('/register', (req, res) => {
-    res.render('registerPage')
-})
-
-router.post('/register', (req, res) => {
-    const {
-        username,
-        password,
-        repeatPassword
-    } = req.body
-
-    if (repeatPassword === password) {
-        bcrypt.genSalt(10, async (err, salt) => {
-            const hashedPassword = await bcrypt.hashSync(password, salt)
-
-            const user = await new User({ username, password: hashedPassword })
-
-            const data = await user.save()
-
-            const token = jwt.sign({
-                userId: data._id,
-                username: data.username
-            }, privateKey)
-
-            res.cookie('aid', token)
-
-            return res.redirect('/')
-        })
-    }
-
-})
-
-router.get('/edit/:id', async (req, res) => {
+router.get('/edit/:id', checkGuestUser, userStatus, async (req, res) => {
     const cube = await getCube(req.params.id)
 
     res.render('editCubePage', {
         title: 'Edit | Cube Workshop',
-        ...cube
+        ...cube,
+        auth: req.auth
     })
 })
 
@@ -138,12 +98,13 @@ router.post('/edit/:id', async (req, res) => {
 })
 
 
-router.get('/delete/:id', async (req, res) => {
+router.get('/delete/:id', checkGuestUser, userStatus, async (req, res) => {
     const cube = await getCube(req.params.id)
 
     res.render('deleteCubePage', {
         title: 'Delete | Cube Workshop',
-        ...cube
+        ...cube,
+        auth: req.auth
     })
 })
 
@@ -154,9 +115,10 @@ router.post('/delete/:id', async (req, res) => {
     res.redirect('/')
 })
 
-router.get('*', (req, res) => {
+router.get('*', userStatus, (req, res) => {
     res.render('404', {
-        title: 'Error | Cube Workshop'
+        title: 'Error | Cube Workshop',
+        auth: req.auth
     })
 })
 
