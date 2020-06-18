@@ -40,6 +40,11 @@ router.post('/register', (req, res) => {
         repeatPassword
     } = req.body
 
+    if (!password || password.length < 8 || !password.match(/^[A-Za-z0-9]*$/)) {
+        res.redirect('/register')
+        throw Error
+    }
+
     if (repeatPassword === password) {
         bcrypt.genSalt(10, async (err, salt) => {
             const hashedPassword = await bcrypt.hashSync(password, salt)
@@ -57,6 +62,9 @@ router.post('/register', (req, res) => {
 
             return res.redirect('/')
         })
+    } else {
+        res.redirect('/register')
+        throw Error
     }
 
 })
