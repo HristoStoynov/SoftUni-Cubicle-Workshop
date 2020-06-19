@@ -17,20 +17,25 @@ router.post('/login', async (req, res) => {
 
     const thisuser = await User.findOne({ username })
 
-    bcrypt.compare(password, thisuser.password, (err, result) => {
-        if (result) {
-            const token = jwt.sign({
-                userId: thisuser._id,
-                username: thisuser.username
-            }, config.privateKey)
 
-            res.cookie('aid', token)
+    try {
+        bcrypt.compare(password, thisuser.password, (err, result) => {
+            if (result) {
+                const token = jwt.sign({
+                    userId: thisuser._id,
+                    username: thisuser.username
+                }, config.privateKey)
 
-            res.redirect('/')
-        } else {
-            console.error(err)
-        }
-    })
+                res.cookie('aid', token)
+
+                res.redirect('/')
+            } else {
+                res.redirect('/login?error=true')
+            }
+        })
+    } catch (err) {
+        res.redirect('/login?error=true')
+    }
 })
 
 router.post('/register', (req, res) => {
@@ -41,8 +46,7 @@ router.post('/register', (req, res) => {
     } = req.body
 
     if (!password || password.length < 8 || !password.match(/^[A-Za-z0-9]*$/)) {
-        res.redirect('/register')
-        throw Error
+        res.redirect('/register?error=true')
     }
 
     if (repeatPassword === password) {
@@ -63,8 +67,8 @@ router.post('/register', (req, res) => {
             return res.redirect('/')
         })
     } else {
-        res.redirect('/register')
-        throw Error
+        req.params.message = 'Ima greshka'
+        res.redirect('/register?error=true')
     }
 
 })

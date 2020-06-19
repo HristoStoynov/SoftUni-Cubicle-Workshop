@@ -16,9 +16,12 @@ router.get('/', userStatus, async (req, res) => {
 })
 
 router.get('/login', checkLoggedUser, userStatus, (req, res) => {
+    const message = req.query.error ? 'Your username or password is invalid' : null
+
     res.render('loginPage', {
         title: 'Login | Cube Workshop',
-        auth: req.auth
+        auth: req.auth,
+        message
     })
 })
 
@@ -29,9 +32,12 @@ router.get('/logout', (req, res) => {
 })
 
 router.get('/register', checkLoggedUser, userStatus, (req, res) => {
+    const message = req.query.error ? 'Your username or password is invalid' : null
+
     res.render('registerPage', {
         title: 'Register | Cube Workshop',
-        auth: req.auth
+        auth: req.auth,
+        message
     })
 })
 
