@@ -5,7 +5,7 @@ const CubeSchema = new mongoose.Schema({
         type: 'String',
         required: true,
         minlength: 5,
-        match: [/^[A-Za-z][ ][A-Za-z0-9]*$/, 'The Name should be diff']
+        match: [/^[A-Za-z0-9 ]*$/, 'The Name should be diff']
     },
 
     description: {
@@ -13,7 +13,7 @@ const CubeSchema = new mongoose.Schema({
         required: true,
         maxlength: 400,
         minlength: 20,
-        match: [/^[A-Za-z][ ][A-Za-z0-9]*$/, 'The Desc should be diff']
+        match: [/^[A-Za-z0-9 ]*$/, 'The Desc should be diff']
     },
 
     imageUrl: {

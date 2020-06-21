@@ -6,7 +6,7 @@ const UserSchema = new mongoose.Schema({
         required: true,
         unique: true,
         minlength: 5,
-        match: [/^[A-Za-z][A-Za-z0-9]*$/, 'The username should be diff']
+        match: [/^[A-Za-z0-9]*$/, 'The username should be diff']
     },
 
     password: {

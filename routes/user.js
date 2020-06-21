@@ -30,11 +30,19 @@ router.post('/login', async (req, res) => {
 
                 res.redirect('/')
             } else {
-                res.redirect('/login?error=true')
+                res.render('loginPage', {
+                    title: 'Login | Cube Workshop',
+                    auth: req.auth,
+                    message: "Your password is wrong boy!"
+                })
             }
         })
     } catch (err) {
-        res.redirect('/login?error=true')
+        res.render('loginPage', {
+            title: 'Login | Cube Workshop',
+            auth: req.auth,
+            message: "Your username is wrong boy!"
+        })
     }
 })
 
@@ -45,32 +53,46 @@ router.post('/register', (req, res) => {
         repeatPassword
     } = req.body
 
-    if (!password || password.length < 8 || !password.match(/^[A-Za-z0-9]*$/)) {
-        res.redirect('/register?error=true')
-    }
+    try {
+        if (!password || password.length < 8 || !password.match(/^[A-Za-z0-9]*$/)) {
+            res.render('registerPage', {
+                title: 'Register | Cube Workshop',
+                auth: req.auth,
+                message: "Your password is not cool enough boy!"
+            })
+        }
 
-    if (repeatPassword === password) {
-        bcrypt.genSalt(10, async (err, salt) => {
-            const hashedPassword = await bcrypt.hashSync(password, salt)
+        if (repeatPassword === password) {
+            bcrypt.genSalt(10, async (err, salt) => {
+                const hashedPassword = await bcrypt.hashSync(password, salt)
 
-            const user = await new User({ username, password: hashedPassword })
+                const user = await new User({ username, password: hashedPassword })
 
-            const data = await user.save()
+                const data = await user.save()
 
-            const token = jwt.sign({
-                userId: data._id,
-                username: data.username
-            }, config.privateKey)
+                const token = jwt.sign({
+                    userId: data._id,
+                    username: data.username
+                }, config.privateKey)
 
-            res.cookie('aid', token)
+                res.cookie('aid', token)
 
-            return res.redirect('/')
+                return res.redirect('/')
+            })
+        } else {
+            res.render('registerPage', {
+                title: 'Register | Cube Workshop',
+                auth: req.auth,
+                message: "Your passwords don't match boy!"
+            })
+        }
+    } catch (err) {
+        res.render('registerPage', {
+            title: 'Register | Cube Workshop',
+            auth: req.auth,
+            message: "Your username is bad boy!"
         })
-    } else {
-        req.params.message = 'Ima greshka'
-        res.redirect('/register?error=true')
     }
-
 })
 
 module.exports = router
